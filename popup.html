@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkedIn → Clay Sync</title>
+  <style>
+    :root {
+      --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e5e5ea;
+      --accent: #0a66c2; --ok: #1e8e3e; --err: #c5221f; --soft: #f5f5f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 360px; margin: 0; padding: 16px;
+      font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--fg); background: var(--bg);
+    }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    h1 { font-size: 15px; margin: 0; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+    .dot.ok { background: var(--ok); } .dot.err { background: var(--err); }
+    section { border-top: 1px solid var(--line); padding: 12px 0; }
+    label.field { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type=url], input[type=time], select {
+      font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+    }
+    input[type=url] { width: 100%; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row + .row { margin-top: 8px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .check { display: flex; gap: 8px; align-items: flex-start; }
+    .check + .check { margin-top: 8px; }
+    button.primary {
+      width: 100%; padding: 9px; border: 0; border-radius: 8px; font: inherit; font-weight: 600;
+      background: var(--accent); color: #fff; cursor: pointer;
+    }
+    button.primary:disabled { opacity: .45; cursor: default; }
+    .progress { height: 4px; background: var(--soft); border-radius: 2px; overflow: hidden; margin-top: 10px; display: none; }
+    .progress.active { display: block; }
+    .bar { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+    .status { margin-top: 8px; font-size: 12px; color: var(--muted); min-height: 16px; }
+    .result { margin-top: 8px; padding: 8px 10px; border-radius: 6px; display: none; }
+    .result.ok { display: block; background: #e6f4ea; color: var(--ok); }
+    .result.err { display: block; background: #fce8e6; color: var(--err); }
+    .links { display: flex; gap: 12px; margin-top: 6px; }
+    .links a { color: var(--accent); font-size: 12px; cursor: pointer; text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    #weekday-wrap[hidden], #time-wrap[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LinkedIn → Clay Sync</h1>
+    <span class="pill"><span id="li-dot" class="dot"></span><span id="li-text">Checking…</span></span>
+  </header>
+
+  <section>
+    <label class="field" for="webhook-url">Clay webhook URL</label>
+    <input type="url" id="webhook-url" placeholder="https://api.clay.com/v3/sources/webhook/…" spellcheck="false">
+    <div class="hint">In Clay: table → Add source → Webhook → copy the URL.</div>
+  </section>
+
+  <section>
+    <label class="field">Schedule</label>
+    <div class="row">
+      <select id="schedule-mode">
+        <option value="off">Off (manual only)</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+      </select>
+      <span id="weekday-wrap" hidden>
+        <select id="schedule-weekday">
+          <option value="1">Monday</option><option value="2">Tuesday</option>
+          <option value="3">Wednesday</option><option value="4">Thursday</option>
+          <option value="5">Friday</option><option value="6">Saturday</option>
+          <option value="0">Sunday</option>
+        </select>
+      </span>
+      <span id="time-wrap" hidden>at <input type="time" id="schedule-time" value="08:00"></span>
+    </div>
+    <div class="hint" id="next-run"></div>
+    <div class="hint">Chrome must be running and logged into LinkedIn. If Chrome was closed at that time, the run catches up a minute after Chrome starts.</div>
+  </section>
+
+  <section>
+    <div class="check">
+      <input type="checkbox" id="delta-sync" checked>
+      <label for="delta-sync">Only send new connections (skip ones already sent)</label>
+    </div>
+    <div class="check">
+      <input type="checkbox" id="notify" checked>
+      <label for="notify">Notify me after scheduled runs</label>
+    </div>
+    <div class="hint" id="history-info"></div>
+    <div class="links">
+      <a id="baseline" title="Don't send anyone you're already connected with; only connections made from now on">Skip existing connections</a>
+      <a id="reset" title="Forget sync history; the next sync sends everyone">Reset history</a>
+    </div>
+  </section>
+
+  <section>
+    <button class="primary" id="sync-btn" disabled>Sync now</button>
+    <div class="progress" id="progress"><div class="bar" id="bar"></div></div>
+    <div class="status" id="status"></div>
+    <div class="result" id="result"></div>
+    <div class="links"><a id="open-history">View synced profiles &amp; run history</a></div>
+  </section>
+
+  <script src="db.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "linkedin-clay-sync",
+  "version": "3.1.0",
+  "private": true,
+  "description": "Chrome extension that syncs your LinkedIn connections to a Clay webhook, on demand or on a schedule.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "package": "bash scripts/package.sh",
+    "screenshots": "node scripts/screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.65.1"
+  }
+}
